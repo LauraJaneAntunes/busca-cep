@@ -16,7 +16,7 @@ export default function App() {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
 
-  const estados = ['SP', 'RJ', 'MG', 'ES', 'BA', 'RS', 'SC', 'PR', 'PE', 'CE', 'GO'];
+  const estados = ['AC','AM', 'AP','AL', 'BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
   const BuscaCep = async (xcep) => {
     if (xcep.length !== 8) {
