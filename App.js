@@ -1,135 +1,149 @@
-import React, { useState } from 'react';  // Importa o React e useState para gerenciar o estado
-import { View, StyleSheet } from 'react-native';  // Importa componentes do React Native
-import { Text, TextInput, Button, Card } from 'react-native-paper';  // Importa componentes da biblioteca React Native Paper
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text, TextInput, Button, List } from 'react-native-paper';
 
 export default function App() {
-  const [cep, setCep] = useState('');  // Estado para armazenar o valor do CEP
-  const [dados, setDados] = useState(null);  // Estado para armazenar os dados retornados pela API
+  const [cep, setCep] = useState('');
+  const [rua, setRua] = useState('');
+  const [numero, setNumero] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [expanded, setExpanded] = useState(false); // Accordion estado
+  const estados = ['SP', 'RJ', 'MG', 'ES', 'BA', 'RS', 'SC', 'PR', 'PE', 'CE', 'GO'];
 
-  // Função assíncrona que busca o CEP
   const BuscaCep = async (xcep) => {
-    // Valida se o CEP tem 8 caracteres
     if (xcep.length !== 8) {
-      alert('CEP inválido! Insira um CEP com 8 dígitos.');  // Exibe alerta caso o CEP seja inválido
-      return;  // Encerra a função se o CEP for inválido
+      alert('CEP inválido! Insira um CEP com 8 dígitos.');
+      return;
     }
 
     try {
-      // Cria a URL da API para buscar os dados do CEP
       let url = `https://viacep.com.br/ws/${xcep}/json/`;
-      // Faz a requisição para a API
       let response = await fetch(url);
-      // Converte a resposta em formato JSON
       let xjson = await response.json();
-      // Atualiza o estado 'dados' com os dados retornados pela API
-      setDados(xjson);
+      if (!xjson.erro) {
+        setRua(xjson.logradouro || '');
+        setBairro(xjson.bairro || '');
+        setCidade(xjson.localidade || '');
+        setEstado(xjson.uf || '');
+      } else {
+        alert('CEP não encontrado!');
+      }
     } catch (error) {
-      // Exibe um alerta caso ocorra um erro na requisição
       alert('Erro ao buscar CEP. Verifique sua conexão.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Título da tela */}
+    <ScrollView contentContainerStyle={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>
-        Busca CEP
+        Formulário de Endereço
       </Text>
 
-      {/* Campo de entrada para o CEP */}
       <TextInput
-        label="Digite o CEP"
-        value={cep}  // Avisa qual é o valor atual do estado 'cep'
-        onChangeText={setCep}  // Atualiza o estado 'cep' com o texto digitado
-        keyboardType="numeric"  // Permite apenas números no campo
-        maxLength={8}  // Limita o campo a 8 caracteres
-        mode="flat"  // Estilo plano para o campo de texto
+        label="CEP"
+        value={cep}
+        onChangeText={setCep}
+        keyboardType="numeric"
+        maxLength={8}
         style={styles.input}
       />
 
-      {/* Botão para buscar o CEP */}
       <Button
-        icon="card-search"  // Ícone de lupa (pesquisa)
-        mode="contained"  // Estilo de botão preenchido
-        onPress={() => BuscaCep(cep)}  // Chama a função 'BuscaCep' ao clicar no botão
+        icon="card-search"
+        mode="contained"
+        onPress={() => BuscaCep(cep)}
         style={styles.button}
       >
-        Buscar
+        Buscar CEP
       </Button>
 
-      {/* Exibe os resultados se 'dados' não for nulo e não houver erro */}
-      {dados && !dados.erro && (
-        <Card style={styles.resultContainer}>
-          <Card.Content>
-            <Text style={styles.resultText}>
-              <Text style={styles.label}>LOGRADOURO: </Text>
-              {dados.logradouro}
-            </Text>
-            <Text style={styles.resultText}>
-              <Text style={styles.label}>BAIRRO: </Text>
-              {dados.bairro}
-            </Text>
-            <Text style={styles.resultText}>
-              <Text style={styles.label}>CIDADE: </Text>
-              {dados.localidade}
-            </Text>
-            <Text style={styles.resultText}>
-              <Text style={styles.label}>ESTADO: </Text>
-              {dados.uf}
-            </Text>
-          </Card.Content>
-        </Card>
-      )}
+      <TextInput
+        label="Rua"
+        value={rua}
+        onChangeText={setRua}
+        style={styles.input}
+      />
 
-      {/* Exibe mensagem de erro se 'dados.erro' for verdadeiro */}
-      {dados && dados.erro && (
-        <Text style={styles.errorText}>CEP não encontrado!</Text>
-      )}
-    </View>
+      <TextInput
+        label="Número"
+        value={numero}
+        onChangeText={setNumero}
+        keyboardType="numeric"
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Bairro"
+        value={bairro}
+        onChangeText={setBairro}
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Cidade"
+        value={cidade}
+        onChangeText={setCidade}
+        style={styles.input}
+      />
+
+      {/* Accordion para selecionar estado */}
+      <List.Section style={styles.accordionContainer}>
+        <List.Accordion
+          title={estado ? `Estado: ${estado}` : 'Selecione o Estado'}
+          expanded={true}
+          onPress={() => setExpanded(!expanded)}
+          left={(props) => <List.Icon {...props} icon="map-marker" />}
+        >
+          {estados.map((uf) => (
+            <List.Item
+              key={uf}
+              title={uf}
+              onPress={() => {
+                setEstado(uf);
+                setExpanded(false);
+              }}
+            />
+          ))}
+        </List.Accordion>
+      </List.Section>
+
+      <Button
+        icon="check"
+        mode="contained"
+        onPress={() => alert('Endereço salvo com sucesso!')}
+        style={styles.button}
+      >
+        Salvar Endereço
+      </Button>
+    </ScrollView>
   );
 }
 
-// Estilos do aplicativo
 const styles = StyleSheet.create({
   container: {
-    flex: 1,  // Preenche toda a tela
-    backgroundColor: '#f4f4f4',  // Cor de fundo
-    alignItems: 'center',  // Centraliza os elementos horizontalmente
-    justifyContent: 'center',  // Centraliza os elementos verticalmente
-    padding: 20,  // Adiciona espaçamento ao redor da tela
+    flexGrow: 1,
+    backgroundColor: '#f4f4f4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
   },
   title: {
-    fontWeight: 'bold',  // Deixa o título em negrito
-    marginBottom: 20,  // Adiciona espaçamento abaixo do título
-    color: 'blueviolet',  // Cor do título
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: 'blueviolet',
   },
   input: {
-    width: 140,  // Define a largura do campo de texto
-    marginBottom: 10,  // Adiciona espaçamento abaixo do campo de texto
+    width: '100%',
+    marginBottom: 10,
   },
   button: {
-    alignSelf: 'center',  // Centraliza o botão horizontalmente
+    marginVertical: 10,
+    width: '100%',
   },
-  resultContainer: {
-    marginTop: 20,  // Adiciona espaçamento acima do card com os resultados
-    padding: 10,  // Adiciona espaçamento interno ao card
-    backgroundColor: 'white',  // Cor de fundo do card
-    borderRadius: 8,  // Arredonda as bordas do card
-    elevation: 3,  // Sombra para o card
-    width: '100%',  // Faz o card ocupar a largura total
-  },
-  resultText: {
-    fontSize: 16,  // Tamanho da fonte dos resultados
-    color: 'blueviolet',  // Cor do texto
-    marginBottom: 5,  // Adiciona espaçamento abaixo do texto
-  },
-  label: {
-    fontWeight: 'bold',  // Deixa o texto da label em negrito
-    textTransform: 'uppercase',  // Deixa as labels em maiúsculo
-  },
-  errorText: {
-    color: 'red',  // Cor do texto de erro
-    fontSize: 16,  // Tamanho da fonte
-    marginTop: 10,  // Adiciona espaçamento acima da mensagem de erro
+  accordionContainer: {
+    width: '100%',
+    marginBottom: 10,
   },
 });
