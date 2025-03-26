@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, TextInput, Button, List } from 'react-native-paper';
+import { StyleSheet, ScrollView } from 'react-native';
+import { Text, TextInput, Button, List, Portal, Dialog, Provider as PaperProvider, Card, Divider } from 'react-native-paper';
 
 export default function App() {
   const [cep, setCep] = useState('');
@@ -9,12 +9,19 @@ export default function App() {
   const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
-  const [expanded, setExpanded] = useState(false); // Accordion estado
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [expanded, setExpanded] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
+
   const estados = ['SP', 'RJ', 'MG', 'ES', 'BA', 'RS', 'SC', 'PR', 'PE', 'CE', 'GO'];
 
   const BuscaCep = async (xcep) => {
     if (xcep.length !== 8) {
-      alert('CEP inválido! Insira um CEP com 8 dígitos.');
+      setDialogMessage('CEP inválido! Insira um CEP com 8 dígitos.');
+      setDialogVisible(true);
       return;
     }
 
@@ -28,96 +35,153 @@ export default function App() {
         setCidade(xjson.localidade || '');
         setEstado(xjson.uf || '');
       } else {
-        alert('CEP não encontrado!');
+        setDialogMessage('CEP não encontrado!');
+        setDialogVisible(true);
       }
     } catch (error) {
-      alert('Erro ao buscar CEP. Verifique sua conexão.');
+      setDialogMessage('Erro ao buscar CEP. Verifique sua conexão.');
+      setDialogVisible(true);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>
-        Formulário de Endereço
-      </Text>
+    <PaperProvider>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text variant="headlineMedium" style={styles.title}>
+          Formulário
+        </Text>
 
-      <TextInput
-        label="CEP"
-        value={cep}
-        onChangeText={setCep}
-        keyboardType="numeric"
-        maxLength={8}
-        style={styles.input}
-      />
-
-      <Button
-        icon="card-search"
-        mode="contained"
-        onPress={() => BuscaCep(cep)}
-        style={styles.button}
-      >
-        Buscar CEP
-      </Button>
-
-      <TextInput
-        label="Rua"
-        value={rua}
-        onChangeText={setRua}
-        style={styles.input}
-      />
-
-      <TextInput
-        label="Número"
-        value={numero}
-        onChangeText={setNumero}
-        keyboardType="numeric"
-        style={styles.input}
-      />
-
-      <TextInput
-        label="Bairro"
-        value={bairro}
-        onChangeText={setBairro}
-        style={styles.input}
-      />
-
-      <TextInput
-        label="Cidade"
-        value={cidade}
-        onChangeText={setCidade}
-        style={styles.input}
-      />
-
-      {/* Accordion para selecionar estado */}
-      <List.Section style={styles.accordionContainer}>
-        <List.Accordion
-          title={estado ? `Estado: ${estado}` : 'Selecione o Estado'}
-          expanded={true}
-          onPress={() => setExpanded(!expanded)}
-          left={(props) => <List.Icon {...props} icon="map-marker" />}
-        >
-          {estados.map((uf) => (
-            <List.Item
-              key={uf}
-              title={uf}
-              onPress={() => {
-                setEstado(uf);
-                setExpanded(false);
-              }}
+        {/* CARD DADOS PESSOAIS */}
+        <Card style={styles.card}>
+          <Card.Title title="Dados Pessoais" />
+          <Card.Content>
+            <TextInput
+              label="Nome"
+              value={nome}
+              onChangeText={setNome}
+              style={styles.input}
             />
-          ))}
-        </List.Accordion>
-      </List.Section>
 
-      <Button
-        icon="check"
-        mode="contained"
-        onPress={() => alert('Endereço salvo com sucesso!')}
-        style={styles.button}
-      >
-        Salvar Endereço
-      </Button>
-    </ScrollView>
+            <TextInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              style={styles.input}
+            />
+
+            <TextInput
+              label="Data de Nascimento"
+              value={dataNascimento}
+              onChangeText={setDataNascimento}
+              placeholder="DD/MM/AAAA"
+              keyboardType="numeric"
+              style={styles.input}
+            />
+          </Card.Content>
+        </Card>
+
+        <Divider style={{ marginVertical: 10 }} />
+
+        {/* CARD ENDEREÇO */}
+        <Card style={styles.card}>
+          <Card.Title title="Endereço" />
+          <Card.Content>
+            <TextInput
+              label="CEP"
+              value={cep}
+              onChangeText={setCep}
+              keyboardType="numeric"
+              maxLength={8}
+              style={styles.input}
+            />
+
+            <Button
+              icon="card-search"
+              mode="contained"
+              onPress={() => BuscaCep(cep)}
+              style={styles.button}
+            >
+              Buscar CEP
+            </Button>
+
+            <TextInput
+              label="Rua"
+              value={rua}
+              onChangeText={setRua}
+              style={styles.input}
+            />
+
+            <TextInput
+              label="Número"
+              value={numero}
+              onChangeText={setNumero}
+              keyboardType="numeric"
+              style={styles.input}
+            />
+
+            <TextInput
+              label="Bairro"
+              value={bairro}
+              onChangeText={setBairro}
+              style={styles.input}
+            />
+
+            <TextInput
+              label="Cidade"
+              value={cidade}
+              onChangeText={setCidade}
+              style={styles.input}
+            />
+
+            <List.Section style={styles.accordionContainer}>
+              <List.Accordion
+                title={estado ? `Estado: ${estado}` : 'Selecione o Estado'}
+                expanded={expanded}
+                onPress={() => setExpanded(!expanded)}
+                left={(props) => <List.Icon {...props} icon="map-marker" />}
+              >
+                {estados.map((uf) => (
+                  <List.Item
+                    key={uf}
+                    title={uf}
+                    onPress={() => {
+                      setEstado(uf);
+                      setExpanded(false);
+                    }}
+                  />
+                ))}
+              </List.Accordion>
+            </List.Section>
+          </Card.Content>
+        </Card>
+
+        <Button
+          icon="check"
+          mode="contained"
+          onPress={() => alert('Endereço salvo com sucesso!')}
+          style={styles.button}
+        >
+          Salvar Endereço
+        </Button>
+
+        {/* Dialog de Erro */}
+        <Portal>
+          <Dialog
+            visible={dialogVisible}
+            onDismiss={() => setDialogVisible(false)}
+          >
+            <Dialog.Title>Atenção</Dialog.Title>
+            <Dialog.Content>
+              <Text variant="bodyMedium">{dialogMessage}</Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setDialogVisible(false)}>Fechar</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </ScrollView>
+    </PaperProvider>
   );
 }
 
@@ -134,13 +198,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: 'blueviolet',
   },
+  card: {
+    width: '100%',
+    marginBottom: 10,
+  },
   input: {
     width: '100%',
     marginBottom: 10,
   },
   button: {
     marginVertical: 10,
-    width: '100%',
+    width: '200',
+    alignItems: 'center',
   },
   accordionContainer: {
     width: '100%',
